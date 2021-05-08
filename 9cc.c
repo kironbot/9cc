@@ -1,5 +1,106 @@
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+// トークンの種類
+typedef enum {
+    TK_RESERVED, // 記号
+    TK_NUM, // 整数
+    TK_EOF, // 終端記号
+} TokenKind;
+
+typedef struct Token Token;
+
+// トークン型
+struct Token {
+    TokenKind kind; // トークンの型
+    Token *next;    // 次の入力トークン
+    int val;        // kindがTK_NUMの場合、その値
+    char *str;      // トークン文字列
+};
+
+Token *token;
+
+// エラーを報告するための関数
+// printfと同じ引数
+void error(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+// 次のトークンが期待している記号であれば、トークンを1つ進めてtrueを返す。それ以外はfalseを返す。
+bool consume(char op) {
+    if (token->kind != TK_RESERVED || token->str[0] != op) return false;
+    token = token->next;
+    return true;
+}
+
+// 次のトークンが期待している記号であれば、トークンを1つ進める。それ以外はエラーを報告する。
+bool expect(char op) {
+    if (token->kind != TK_RESERVED || token->str[0] != op)
+        error("token is not '%c'", op);
+    token = token->next;
+}
+
+// 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す。
+// それ以外の場合にはエラーを報告する。
+int expect_number() {
+    if (token->kind != TK_NUM) error("token is not number");
+    int val = token->val;
+    token = token->next;
+    return val;
+}
+
+// トークンが終端記号かどうか判定する
+bool at_eof() {
+    return token->kind == TK_EOF;
+}
+
+// 新しいトークンを作成してcurにつなげる
+Token *new_token(TokenKind kind, Token *cur, char *str) {
+    Token *tok = calloc(1, sizeof(Token));
+    tok->kind = kind;
+    tok->str = str;
+    cur->next = tok;
+    return tok;
+}
+
+// 入力文字列pをトークナイズしてそれを返す
+Token *tokenize(char *p) {
+    Token head;
+    head.next = NULL;
+    Token *cur = &head;
+
+    while(*p) {
+        // 空白文字をスキップ
+        if (isspace(*p)) {
+            p++;
+            continue;
+        }
+
+        if (*p == '+' || *p == '-') {
+            cur = new_token(TK_RESERVED, cur, p++);
+            continue;
+        }
+
+        if (isdigit(*p)) {
+            cur = new_token(TK_NUM, cur, p);
+            cur->val = strtol(p, &p, 10);
+            continue;
+        }
+
+        error("cannot tokenize");
+    }
+
+    new_token(TK_EOF, cur, p);
+    return head.next;
+}
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -7,27 +108,26 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    char *p = argv[1];
+    // トークナイズする
+    token = tokenize(argv[1]);
 
+    // アセンブリの前半部分を出力
     printf(".intel_syntax noprefix\n");
     printf(".global main\n");
     printf("main:\n");
-    printf("    mov rax, %ld\n", strtol(p, &p, 10));
 
-    while(*p) {
-        if (*p == '+') {
-            p++;
-            printf("    add rax, %ld\n", strtol(p, &p, 10));
-            continue;
-        }
-        if(*p == '-') {
-            p++;
-            printf("    sub rax, %ld\n", strtol(p, &p, 10));
+    // 式の最初が数値で始まっていることをチェック
+    // 最初のmov命令を出力
+    printf("    mov rax, %d\n", expect_number());
+
+    while(!at_eof()) {
+        if (consume('+')) {
+            printf("    add rax, %d\n", expect_number());
             continue;
         }
 
-        fprintf(stderr, "not expected char: '%c\n'", *p);
-        return 1;
+        expect('-');
+        printf("    sub rax, %d\n", expect_number());
     }
 
     printf("    ret\n");

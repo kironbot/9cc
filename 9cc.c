@@ -22,7 +22,11 @@ struct Token {
     char *str;      // トークン文字列
 };
 
+// 入力文字列のトークンを保存するグローバル変数
 Token *token;
+
+// 入力プログラムを保存するグローバル変数
+char *user_input;
 
 // エラーを報告するための関数
 // printfと同じ引数
@@ -34,6 +38,21 @@ void error(char *fmt, ...) {
     exit(1);
 }
 
+// エラー箇所を報告する
+void error_at(char *loc, char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+
+    int pos = loc - user_input;
+    fprintf(stderr, "%s\n", user_input);
+    fprintf(stderr, "%*s", pos, " "); // 空白 x pos
+    fprintf(stderr, "^ ");
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+
 // 次のトークンが期待している記号であれば、トークンを1つ進めてtrueを返す。それ以外はfalseを返す。
 bool consume(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op) return false;
@@ -44,14 +63,14 @@ bool consume(char op) {
 // 次のトークンが期待している記号であれば、トークンを1つ進める。それ以外はエラーを報告する。
 bool expect(char op) {
     if (token->kind != TK_RESERVED || token->str[0] != op)
-        error("token is not '%c'", op);
+        error_at(token->str, "'%c'ではありません", op);
     token = token->next;
 }
 
 // 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す。
 // それ以外の場合にはエラーを報告する。
 int expect_number() {
-    if (token->kind != TK_NUM) error("token is not number");
+    if (token->kind != TK_NUM) error_at(token->str, "数ではありません");
     int val = token->val;
     token = token->next;
     return val;
@@ -95,7 +114,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        error("cannot tokenize");
+        error_at(token->str, "トークナイズできません");
     }
 
     new_token(TK_EOF, cur, p);
@@ -107,6 +126,9 @@ int main(int argc, char **argv) {
         fprintf(stderr, "argc is not 2\n");
         return 1;
     }
+
+    // 入力プログラムを保存
+    user_input = argv[1];
 
     // トークナイズする
     token = tokenize(argv[1]);

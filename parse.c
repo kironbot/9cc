@@ -1,60 +1,7 @@
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-
-
-// トークンの種類
-typedef enum {
-    TK_RESERVED, // 記号
-    TK_NUM, // 整数
-    TK_EOF, // 終端記号
-} TokenKind;
-
-typedef struct Token Token;
-
-// トークン型
-struct Token {
-    TokenKind kind; // トークンの型
-    Token *next;    // 次の入力トークン
-    int val;        // kindがTK_NUMの場合、その値
-    char *str;      // トークン文字列
-    int len;        // トークンの長さ
-};
+#include "9cc.h"
 
 // 入力文字列のトークンを保存するグローバル変数
 Token *token;
-
-// 入力プログラムを保存するグローバル変数
-char *user_input;
-
-// エラーを報告するための関数
-// printfと同じ引数
-void error(char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
-// エラー箇所を報告する
-void error_at(char *loc, char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-
-    int pos = loc - user_input;
-    fprintf(stderr, "%s\n", user_input);
-    fprintf(stderr, "%*s", pos, " "); // 空白 x pos
-    fprintf(stderr, "^ ");
-    vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
-    exit(1);
-}
-
 
 // 次のトークンが期待している記号であれば、トークンを1つ進めてtrueを返す。それ以外はfalseを返す。
 bool consume(char *op) {
@@ -148,29 +95,6 @@ Token *tokenize(char *p) {
     return head.next;
 }
 
-// 抽象構文木のノードの種類
-typedef enum {
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
-    ND_EQ,  // ==
-    ND_NE,  // !=
-    ND_LT,  // <
-    ND_LE,  // <=
-    ND_NUM, // 整数
-} NodeKind;
-
-typedef struct Node Node;
-
-// 抽象構文木のノードの型
-struct Node {
-    NodeKind kind; // ノードの型
-    Node *lhs;     // 左辺
-    Node *rhs;     // 右辺
-    int val;       // kindがND_NUMの場合の数値
-};
-
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -185,15 +109,6 @@ Node *new_node_num(int val) {
     node->val = val;
     return node;
 }
-
-// 先に宣言しておく
-Node *expr();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *primary();
-Node *unary();
 
 Node *expr() {
     return equality();
@@ -277,85 +192,4 @@ Node *unary() {
         return new_node(ND_SUB, new_node_num(0), primary());
     
     return primary();
-}
-
-// 抽象構文木をスタックマシンに乗せてエミュレートする
-void gen(Node *node) {
-    if (node->kind == ND_NUM) {
-        printf("    push %d\n", node->val);
-        return;
-    }
-
-    gen(node->lhs);
-    gen(node->rhs);
-
-    printf("    pop rdi\n");
-    printf("    pop rax\n");
-
-    switch (node->kind) {
-        case ND_ADD:
-            printf("    add rax, rdi\n");
-            break;
-        case ND_SUB:
-            printf("    sub rax, rdi\n");
-            break;
-        case ND_MUL:
-            printf("    imul rax, rdi\n");
-            break;
-        case ND_DIV:
-            printf("    cqo\n");
-            printf("    idiv rdi\n");
-            break;
-        case ND_EQ:
-            printf("    cmp rax, rdi\n");
-            printf("    sete al\n");
-            printf("    movzb rax, al\n");
-            break;
-        case ND_NE:
-            printf("    cmp rax, rdi\n");
-            printf("    setne al\n");
-            printf("    movzb rax, al\n");
-            break;
-        case ND_LT:
-            printf("    cmp rax, rdi\n");
-            printf("    setl al\n");
-            printf("    movzb rax, al\n");
-            break;
-        case ND_LE:
-            printf("    cmp rax, rdi\n");
-            printf("    setle al\n");
-            printf("    movzb rax, al\n");
-            break;
-    }
-
-    printf("    push rax\n");
-}
-
-
-int main(int argc, char **argv) {
-    if (argc != 2) {
-        error("引数の個数が正しくありません");
-        return 1;
-    }
-
-    // 入力プログラムを保存
-    user_input = argv[1];
-    // トークナイズする
-    token = tokenize(argv[1]);
-    // トークンを抽象構文木にパースする
-    Node *node = expr();
-
-    // アセンブリの前半部分を出力
-    printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
-
-    // 抽象構文木を下りながらコード生成
-    gen(node);
-
-    // スタックトップに式全体の値が残っているので
-    // それをRAXにロードしてから関数の返り値にする
-    printf("    pop rax\n");
-    printf("    ret\n");
-    return 0;
 }

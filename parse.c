@@ -22,6 +22,18 @@ Node *new_node_unary(NodeKind kind, Node *expr) {
     return node;
 }
 
+// 先に宣言しておく
+Node *program();
+Node *stmt();
+Node *expr();
+Node *assign();
+Node *equality();
+Node *relational();
+Node *add();
+Node *mul();
+Node *unary();
+Node *primary();
+
 // program = stmt*
 Node *program() {
     Node head;

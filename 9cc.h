@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+//
+// tokenize.c
+//
 
 // トークンの種類
 typedef enum {
@@ -24,6 +27,24 @@ struct Token {
     char *str;      // トークン文字列
     int len;        // トークンの長さ
 };
+
+// グローバル変数
+extern char *user_input;
+extern Token *token;
+
+// 関数定義
+void error(char *fmt, ...);
+void error_at(char *loc, char *fmt, ...);
+bool consume(char *op); 
+bool expect(char *op);
+int expect_number();
+bool at_eof();
+Token *new_token(TokenKind kind, Token *cur, char *str, int len);
+Token *tokenize(char *p);
+
+//
+// parse.c
+//
 
 // 抽象構文木のノードの種類
 typedef enum {
@@ -53,40 +74,10 @@ struct Node {
     int offset;    // kindがND_LVARの場合のみ使う。RBPからのオフセット値。
 };
 
-
-// parse.c
-Token *token;
-bool consume(char *op); 
-bool expect(char *op);
-int expect_number();
-bool at_eof();
-
-Token *new_token(TokenKind kind, Token *cur, char *str, int len);
-bool startswith(char *p, char *q);
-Token *tokenize(char *p);
-
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
-Node *new_node_num(int val);
-Node *new_node_unary(NodeKind kind, Node *expr);
-
 Node *program();
-Node *stmt();
-Node *expr();
-Node *assign();
-Node *equality();
-Node *relational();
-Node *add();
-Node *mul();
-Node *unary();
-Node *primary();
 
-
+//
 // codegen.c
-void gen(Node *node);
+//
+
 void codegen(Node *node);
-
-
-// util.c
-char *user_input;
-void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);

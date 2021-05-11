@@ -27,17 +27,18 @@ struct Token {
 
 // 抽象構文木のノードの種類
 typedef enum {
-    ND_ADD, // +
-    ND_SUB, // -
-    ND_MUL, // *
-    ND_DIV, // /
-    ND_EQ,  // ==
-    ND_NE,  // !=
-    ND_LT,  // <
-    ND_LE,  // <=
-    ND_NUM, // 整数
-    ND_ASSIGN, // =
-    ND_LVAR,   // ローカル変数
+    ND_ADD,     // +
+    ND_SUB,     // -
+    ND_MUL,     // *
+    ND_DIV,     // /
+    ND_EQ,      // ==
+    ND_NE,      // !=
+    ND_LT,      // <
+    ND_LE,      // <=
+    ND_NUM,     // 整数
+    ND_ASSIGN,  // =
+    ND_LVAR,    // ローカル変数
+    ND_RETURN,  // return
 } NodeKind;
 
 typedef struct Node Node;
@@ -66,6 +67,7 @@ Token *tokenize(char *p);
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+Node *new_node_unary(NodeKind kind, Node *expr);
 
 Node *program();
 Node *stmt();

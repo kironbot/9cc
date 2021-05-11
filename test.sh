@@ -49,4 +49,16 @@ assert 0 '1 >= 2;'
 
 assert 3 "1; 2; 3;"
 
+assert 1 "return 1;"
+assert 42 "return 42;"
+assert 21 'return 5+20-4;'
+assert 41 'return  12 + 34 - 5 ;'
+assert 6 'return 2 * 3;'
+assert 4 'return (3+5)/2;'
+assert 10 'return + 10;'
+assert 1 'return -(1+2) + 4;'
+assert 1 'return 3==3;'
+assert 1 'return 1 != 0;'
+
+
 echo OK

@@ -87,6 +87,13 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        // return
+        if (startswith(p, "return")) {
+            cur = new_token(TK_RESERVED, cur, p, 6);
+            p += 6;
+            continue;
+        }
+
         // 識別子
         // この時点では英小文字1文字
         if ('a' <= *p && *p <= 'z') {
@@ -126,6 +133,13 @@ Node *new_node_num(int val) {
     return node;
 }
 
+Node *new_node_unary(NodeKind kind, Node *expr) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    node->lhs = expr;
+    return node;
+}
+
 // program = stmt*
 Node *program() {
     Node head;
@@ -139,8 +153,14 @@ Node *program() {
     return head.next;
 }
 
-// stmt = expr ";"
+// stmt = "return" expr ";" | expr ";"
 Node *stmt() {
+    if (consume("return")) {
+        Node *node = new_node_unary(ND_RETURN, expr());
+        expect(";");
+        return node;
+    }
+
     Node *node = expr();
     expect(";");
     return node; 

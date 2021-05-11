@@ -3,6 +3,9 @@
 // 入力文字列のトークンを保存するグローバル変数
 Token *token;
 
+// パース結果のノード置き場
+Node *code[100];
+
 // 次のトークンが期待している記号であれば、トークンを1つ進めてtrueを返す。それ以外はfalseを返す。
 bool consume(char *op) {
     if (token->kind != TK_RESERVED ||
@@ -30,6 +33,10 @@ int expect_number() {
     token = token->next;
     return val;
 }
+
+// 次のトークンがローカル変数の場合、トークンを1つ読み進めてその数値を返す。
+// それ以外の場合にはエラーを報告する。
+
 
 // トークンが終端記号かどうか判定する
 bool at_eof() {
@@ -74,8 +81,17 @@ Token *tokenize(char *p) {
         }
 
         // 長さ1の記号トークン
-        if (strchr("+-*/()<>", *p)) {
+        if (strchr("+-*/()<>;", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
+            p++;
+            continue;
+        }
+
+        // 識別子
+        // この時点では英小文字1文字
+        if ('a' <= *p && *p <= 'z') {
+            cur = new_token(TK_IDENT, cur, p, 1);
+            cur->len = 1;
             p++;
             continue;
         }
@@ -110,8 +126,35 @@ Node *new_node_num(int val) {
     return node;
 }
 
+// program = stmt*
+Node *program() {
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+
+    while(!at_eof()) {
+        cur->next = stmt();
+        cur = cur->next;
+    }
+    return head.next;
+}
+
+// stmt = expr ";"
+Node *stmt() {
+    Node *node = expr();
+    expect(";");
+    return node; 
+}
+
 Node *expr() {
     return equality();
+}
+
+Node *assign() {
+    Node *node = equality();
+    if(consume("="))
+        node = new_node(ND_ASSIGN, node, assign());
+    return node;
 }
 
 // equality = relational ("==" relational | "!=" relational)*

@@ -22,6 +22,13 @@ Node *new_node_unary(NodeKind kind, Node *expr) {
     return node;
 }
 
+Node *new_node_lvar(char name) {
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_LVAR;
+    node->name = name;
+    return node;
+}
+
 // 先に宣言しておく
 Node *program();
 Node *stmt();
@@ -55,13 +62,14 @@ Node *stmt() {
         return node;
     }
 
-    Node *node = expr();
+    Node *node = new_node_unary(ND_EXPR_STMT, expr());
     expect(";");
     return node; 
 }
 
+// expr = assign
 Node *expr() {
-    return equality();
+    return assign();
 }
 
 Node *assign() {
@@ -130,6 +138,7 @@ Node *mul() {
     }
 }
 
+// primary = "(" expr ")" | ident | num
 Node *primary() {
     // 次のトークンが'('なら'(' expr ')'のはず
     if (consume("(")) {
@@ -137,6 +146,9 @@ Node *primary() {
         expect(")");
         return node;
     }
+
+    Token *tok = consume_ident();
+    if (tok) return new_node_lvar(*tok->str);
 
     // そうでなければ数値
     return new_node_num(expect_number());

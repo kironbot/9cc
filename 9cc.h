@@ -36,6 +36,7 @@ extern Token *token;
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op); 
+Token *consume_ident();
 bool expect(char *op);
 int expect_number();
 bool at_eof();
@@ -60,6 +61,7 @@ typedef enum {
     ND_ASSIGN,  // =
     ND_LVAR,    // ローカル変数
     ND_RETURN,  // return
+    ND_EXPR_STMT, // 宣言文
 } NodeKind;
 
 typedef struct Node Node;
@@ -71,7 +73,7 @@ struct Node {
     Node *lhs;     // 左辺
     Node *rhs;     // 右辺
     int val;       // kindがND_NUMの場合の数値
-    int offset;    // kindがND_LVARの場合のみ使う。RBPからのオフセット値。
+    char name;    // kindがND_LVARの場合のみ使う。RBPからのオフセット値。
 };
 
 Node *program();

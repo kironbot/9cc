@@ -41,6 +41,15 @@ bool consume(char *op) {
     return true;
 }
 
+// 次のトークンが変数であれば消費して次のトークンを返す
+Token *consume_ident() {
+    if (token->kind != TK_IDENT)
+        return NULL;
+    Token *t = token;
+    token = token->next;
+    return t;
+}
+
 // 次のトークンが期待している記号であれば、トークンを1つ進める。それ以外はエラーを報告する。
 bool expect(char *op) {
     if (token->kind != TK_RESERVED ||
@@ -116,7 +125,7 @@ Token *tokenize(char *p) {
         }
 
         // 長さ1の記号トークン
-        if (strchr("+-*/()<>;", *p)) {
+        if (strchr("+-*/()<>;=", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             p++;
             continue;
@@ -133,7 +142,6 @@ Token *tokenize(char *p) {
         // この時点では英小文字1文字
         if ('a' <= *p && *p <= 'z') {
             cur = new_token(TK_IDENT, cur, p, 1);
-            cur->len = 1;
             p++;
             continue;
         }

@@ -30,6 +30,12 @@ void error_at(char *loc, char *fmt, ...) {
     exit(1);
 }
 
+char *strndup(char *p, int len) {
+    char *buf = malloc(len + 1);
+    strncpy(buf, p, len);
+    buf[len] = '\0';
+    return buf;
+}
 
 // 次のトークンが期待している記号であれば、トークンを1つ進めてtrueを返す。それ以外はfalseを返す。
 bool consume(char *op) {
@@ -139,13 +145,14 @@ Token *tokenize(char *p) {
         }
 
         // 識別子
-        // この時点では英小文字1文字
-        if ('a' <= *p && *p <= 'z') {
-            cur = new_token(TK_IDENT, cur, p, 1);
-            p++;
+        if (is_alpha(*p)) {
+            char *q = p++;
+            while (is_alnum(*p)) p++;
+            cur = new_token(TK_IDENT, cur, q, p - q);
             continue;
         }
 
+        // 数字
         if (isdigit(*p)) {
             cur = new_token(TK_NUM, cur, p, 0);
             char *q = p;

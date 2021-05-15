@@ -36,6 +36,7 @@ extern Token *token;
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 bool consume(char *op); 
+char *strndup(char *p, int len);
 Token *consume_ident();
 bool expect(char *op);
 int expect_number();
@@ -46,6 +47,14 @@ Token *tokenize(char *p);
 //
 // parse.c
 //
+
+// ローカル変数
+typedef struct Var Var;
+struct Var {
+    Var *next;
+    char *name;  // 変数名
+    int offset;  // RBPからのオフセット
+};
 
 // 抽象構文木のノードの種類
 typedef enum {
@@ -59,7 +68,7 @@ typedef enum {
     ND_LE,      // <=
     ND_NUM,     // 整数
     ND_ASSIGN,  // =
-    ND_LVAR,    // ローカル変数
+    ND_VAR,    // ローカル変数
     ND_RETURN,  // return
     ND_EXPR_STMT, // 宣言文
 } NodeKind;
@@ -72,14 +81,20 @@ struct Node {
     Node *next;    // nextノード
     Node *lhs;     // 左辺
     Node *rhs;     // 右辺
-    int val;       // kindがND_NUMの場合の数値
-    char name;    // kindがND_LVARの場合のみ使う。RBPからのオフセット値。
+    int val;       // kindがND_NUMのとき使う
+    Var *var;    // kindがND_VARのとき使う
 };
 
-Node *program();
+typedef struct {
+    Node *node;
+    Var *locals;
+    int stack_size;
+} Program;
+
+Program *program();
 
 //
 // codegen.c
 //
 
-void codegen(Node *node);
+void codegen(Program *prog);

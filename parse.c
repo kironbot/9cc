@@ -1,5 +1,17 @@
 #include "9cc.h"
 
+// ローカル変数列
+Var *locals;
+
+// ローカル変数を名前から見つける
+Var *find_var(Token *tok) {
+    for (Var *var = locals; var; var = var->next) {
+        if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
+            return var;
+    }
+    return NULL;
+}
+
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = kind;
@@ -22,15 +34,23 @@ Node *new_node_unary(NodeKind kind, Node *expr) {
     return node;
 }
 
-Node *new_node_lvar(char name) {
+Node *new_node_var(Var *var) {
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
-    node->name = name;
+    node->kind = ND_VAR;
+    node->var = var;
     return node;
 }
 
+Var *push_var(char *name) {
+    Var *var = calloc(1, sizeof(Var));
+    var->next = locals;
+    var->name = name;
+    locals = var;
+    return var;
+}
+
 // 先に宣言しておく
-Node *program();
+Program *program();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -42,7 +62,9 @@ Node *unary();
 Node *primary();
 
 // program = stmt*
-Node *program() {
+Program *program() {
+    locals = NULL;
+
     Node head;
     head.next = NULL;
     Node *cur = &head;
@@ -51,7 +73,11 @@ Node *program() {
         cur->next = stmt();
         cur = cur->next;
     }
-    return head.next;
+
+    Program *prog = calloc(1, sizeof(Program));
+    prog->node = head.next;
+    prog->locals = locals;
+    return prog;
 }
 
 // stmt = "return" expr ";" | expr ";"
@@ -138,6 +164,15 @@ Node *mul() {
     }
 }
 
+Node *unary() {
+    if (consume("+"))
+        return primary();
+    if (consume("-"))
+        return new_node(ND_SUB, new_node_num(0), primary());
+    
+    return primary();
+}
+
 // primary = "(" expr ")" | ident | num
 Node *primary() {
     // 次のトークンが'('なら'(' expr ')'のはず
@@ -148,17 +183,14 @@ Node *primary() {
     }
 
     Token *tok = consume_ident();
-    if (tok) return new_node_lvar(*tok->str);
+    if (tok) {
+        Var *var = find_var(tok);
+        if (!var) 
+            var = push_var(strndup(tok->str, tok->len));
+        return new_node_var(var);
+    }
 
     // そうでなければ数値
     return new_node_num(expect_number());
 }
 
-Node *unary() {
-    if (consume("+"))
-        return primary();
-    if (consume("-"))
-        return new_node(ND_SUB, new_node_num(0), primary());
-    
-    return primary();
-}

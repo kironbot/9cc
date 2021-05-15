@@ -11,10 +11,18 @@ int main(int argc, char **argv) {
     // トークナイズする
     token = tokenize(argv[1]);
     // トークンを抽象構文木にパースする
-    Node *node = program();
+    Program *prog = program();
+
+    // ローカル変数のオフセットを設定
+    int offset = 0;
+    for (Var *var = prog->locals; var; var = var->next) {
+        offset += 8;
+        var->offset = offset;
+    }
+    prog->stack_size = offset;
 
     // コード生成
-    codegen(node);
+    codegen(prog);
 
     return 0;
 }

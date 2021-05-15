@@ -30,5 +30,10 @@ assert 1 'return 1 != 0;'
 assert 3 'a=3; return a;'
 assert 42 'a=40; b = 2; return a + b;'
 
+assert 4 'foo=4; return foo;'
+assert 2 'x1 = 2; return x1;'
+assert 7 'foo=4; bar = 3; return foo + bar;'
+
+
 
 echo OK

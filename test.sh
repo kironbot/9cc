@@ -39,4 +39,6 @@ assert 3 'if (1-1) return 1; return 3;'
 assert 2 'if (1) return 2; return 3;' 
 assert 2 'if (0) return 1; else return 2;'
 
+assert 5 'i=0; while(i<5) i=i+1; return i;'
+
 echo OK

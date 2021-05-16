@@ -71,6 +71,7 @@ typedef enum {
     ND_VAR,     // ローカル変数
     ND_RETURN,  // return
     ND_IF,      // if
+    ND_WHILE,   // while
     ND_EXPR_STMT, // 宣言文
 } NodeKind;
 
@@ -84,7 +85,7 @@ struct Node {
     Node *lhs;     // 左辺
     Node *rhs;     // 右辺
 
-    // if
+    // if, while
     Node *cond;
     Node *then;
     Node *els;

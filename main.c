@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
     token = tokenize(argv[1]);
     // トークンを抽象構文木にパースする
     Function *prog = program();
+    add_type(prog);
 
     // ローカル変数のオフセットを設定
     for (Function *fn = prog; fn; fn = fn->next) {

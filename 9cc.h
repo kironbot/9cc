@@ -100,6 +100,7 @@ struct Node {
 
     // 関数呼び出し
     char *funcname;
+    Node *args;
 
     int val;       // kindがND_NUMのとき使う
     Var *var;    // kindがND_VARのとき使う

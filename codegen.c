@@ -83,6 +83,26 @@ void gen(Node *node) {
             printf(".Lend%d:\n", seq);
             return;
         }
+        case ND_FOR: {
+            int seq = labelseq++;
+
+            // 初期条件
+            if (node->init) gen(node->init);
+            printf(".Lbegin%d:\n", seq);
+            if (node->cond) {
+                gen(node->cond);
+                printf("    pop rax\n");
+                printf("    cmp rax, 0\n");
+                printf("    je  .Lend%d\n", seq);
+            }
+            // forループの中身
+            gen(node->then);
+            // インクリメント条件
+            if (node->inc) gen(node->inc);
+            printf("    jmp .Lbegin%d\n", seq);
+            printf(".Lend%d:\n", seq);
+            return;
+        }
         case ND_RETURN:
             gen(node->lhs);
             printf("    pop rax\n");

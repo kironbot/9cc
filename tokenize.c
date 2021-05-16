@@ -74,8 +74,14 @@ int expect_number() {
     return val;
 }
 
-// 次のトークンがローカル変数の場合、トークンを1つ読み進めてその数値を返す。
-// それ以外の場合にはエラーを報告する。
+// トークンが識別子か判定してトークンを1つ進め文字列を返す
+char *expect_ident() {
+    if (token->kind != TK_IDENT)
+        error_at(token->str, "expected an identifier");
+    char *s = strndup(token->str, token->len);
+    token = token->next;
+    return s;
+}
 
 
 // トークンが終端記号かどうか判定する

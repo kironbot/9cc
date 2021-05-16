@@ -75,6 +75,8 @@ typedef enum {
     ND_LE,      // <=
     ND_NUM,     // 整数
     ND_ASSIGN,  // =
+    ND_ADDR,    // 単項 &
+    ND_DEREF,   // 単項 *
     ND_VAR,     // ローカル変数
     ND_RETURN,  // return
     ND_IF,      // if

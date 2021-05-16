@@ -68,4 +68,8 @@ assert 21 'main () { return add6(1,2,3,4,5,6); }'
 assert 7 'main() { return f(3, 4); } f(x, y) {return x + y; }'
 assert 55 'main() { return fib(9); } fib(x) {if (x <= 1) return 1; return fib(x-1) + fib(x-2); }'
 
+assert 3 'main() { x=3; return *&x; }'
+assert 3 'main() { x=3; y=&x; z=&y; return **z; }'
+assert 5 'main() { x=3; y=5; return *(&x+8); }'
+
 echo OK

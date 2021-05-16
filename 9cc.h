@@ -73,6 +73,7 @@ typedef enum {
     ND_IF,      // if
     ND_WHILE,   // while
     ND_FOR,     // for
+    ND_BLOCK,   // {...}
     ND_EXPR_STMT, // 宣言文
 } NodeKind;
 
@@ -92,6 +93,9 @@ struct Node {
     Node *els;
     Node *init;
     Node *inc;
+
+    // ブロック {...}
+    Node *body;
 
     int val;       // kindがND_NUMのとき使う
     Var *var;    // kindがND_VARのとき使う

@@ -38,10 +38,11 @@ extern Token *token;
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 void error_tok(Token *tok, char *fmt, ...);
+Token *peek(char *s);
 Token *consume(char *op); 
 char *strndup(char *p, int len);
 Token *consume_ident();
-bool expect(char *op);
+void expect(char *s);
 int expect_number();
 char *expect_ident();
 bool at_eof();
@@ -56,6 +57,7 @@ Token *tokenize(char *p);
 typedef struct Var Var;
 struct Var {
     char *name;  // 変数名
+    Type *ty;    // 型
     int offset;  // RBPからのオフセット
 };
 
@@ -76,6 +78,7 @@ typedef enum {
     ND_LT,      // <
     ND_LE,      // <=
     ND_NUM,     // 整数
+    ND_NULL,    // NULL
     ND_ASSIGN,  // =
     ND_ADDR,    // 単項 &
     ND_DEREF,   // 単項 *
@@ -143,6 +146,8 @@ struct Type {
     Type *base;
 };
 
+Type *int_type();
+Type *pointer_to(Type *base);
 void add_type(Function *prog);
 
 //

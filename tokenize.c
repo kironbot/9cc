@@ -108,6 +108,27 @@ bool is_alnum(char c) {
     return is_alpha(c) || ('0' <= c && c <= '9');
 }
 
+char *starts_with_reserved(char *p) {
+    // キーワード
+    static char *kw[] = {"return", "if", "else"};
+
+    for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {
+        int len = strlen(kw[i]);
+        if (startswith(p, kw[i]) && !is_alnum(p[len]))
+            return kw[i];
+    }
+
+    // 長さ2の記号トークン
+    static char *ops[] = {"==", "!=", "<=", ">="};
+
+    for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++) {
+        if (startswith(p, ops[i]))
+            return ops[i];
+    }
+
+    return NULL;
+}
+
 // 入力文字列pをトークナイズしてそれを返す
 Token *tokenize(char *p) {
     Token head;
@@ -121,12 +142,12 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        // 長さ2の記号トークン
-        if (startswith(p, "==") || startswith(p, "!=") ||
-            startswith(p, "<=") || startswith(p, ">=")) {
-            // 長さ2のトークンを読み込んでリストに追加
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
+        // キーワード、2文字以上の記号トークン
+        char *kw = starts_with_reserved(p);
+        if (kw) {
+            int len = strlen(kw);
+            cur = new_token(TK_RESERVED, cur, p, len);
+            p += len;
             continue;
         }
 
@@ -134,13 +155,6 @@ Token *tokenize(char *p) {
         if (strchr("+-*/()<>;=", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             p++;
-            continue;
-        }
-
-        // return
-        if (startswith(p, "return") && !is_alnum(p[6])) {
-            cur = new_token(TK_RESERVED, cur, p, 6);
-            p += 6;
             continue;
         }
 

@@ -34,6 +34,9 @@ assert 4 'foo=4; return foo;'
 assert 2 'x1 = 2; return x1;'
 assert 7 'foo=4; bar = 3; return foo + bar;'
 
-
+assert 3 'if (0) return 2; return 3;'
+assert 3 'if (1-1) return 1; return 3;' 
+assert 2 'if (1) return 2; return 3;' 
+assert 2 'if (0) return 1; else return 2;'
 
 echo OK

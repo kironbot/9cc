@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+int labelseq = 0;
+
 // Nodeのアドレス分、スタックに領域を確保する
 void gen_addr(Node *node) {
     if (node->kind == ND_VAR) {
@@ -43,6 +45,32 @@ void gen(Node *node) {
             gen(node->rhs);
             store();
             return;
+        case ND_IF: {
+            int seq = labelseq++;
+            if (node->els) {
+                // if (A) B else C
+                gen(node->cond);
+                printf("    pop rax\n");
+                printf("    cmp rax, 0\n");
+                printf("    je  .Lelse%d\n", seq);
+                gen(node->then);
+                printf("    jmp .Lend%d\n", seq);
+
+                printf(".Lelse%d:\n", seq);
+                gen(node->els);
+
+                printf(".Lend%d:\n", seq);
+            } else {
+                // if (A) B
+                gen(node->cond);
+                printf("    pop rax\n");
+                printf("    cmp rax, 0\n");
+                printf("    je  .Lend%d\n", seq);
+                gen(node->then);
+                printf(".Lend%d:\n", seq);
+            }
+            return;
+        }
         case ND_RETURN:
             gen(node->lhs);
             printf("    pop rax\n");

@@ -67,5 +67,8 @@ assert 3  'int main() { int x[2]; *x = 3; return *x;}'
 assert 3  'int main() { int x[2]; int *y = &x; *y = 3; return *x;}'
 assert 4  'int main() { int x[3]; x[1]=4; return x[1];}'
 assert 6  'int main() { int x[2][3]; int *y=x; y[6]=6; return x[2][0];}'
+assert 8  'int main() { int x; return sizeof(x);}'
+assert 8  'int main() { int *x; return sizeof(x);}'
+assert 32 'int main() { int x[4]; return sizeof(x);}'
 
 echo OK

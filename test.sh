@@ -1,5 +1,5 @@
 #!/bin/bash
-cat <<EOF | cc -xc -c -o tmp2.o -
+cat <<EOF | gcc -xc -c -o tmp2.o -
 int ret3() {return 3;}
 int ret8() {return 8;}
 int add(int x, int y) {return x+y;}
@@ -15,7 +15,7 @@ assert() {
     input="$2"
 
     ./9cc "$input" > tmp.s
-    cc -o tmp tmp.s tmp2.o
+    cc -static -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
 
@@ -70,5 +70,8 @@ assert 6  'int main() { int x[2][3]; int *y=x; y[6]=6; return x[2][0];}'
 assert 8  'int main() { int x; return sizeof(x);}'
 assert 8  'int main() { int *x; return sizeof(x);}'
 assert 32 'int main() { int x[4]; return sizeof(x);}'
+assert 3  'int x; int main() {x=3; return x; }'
+assert 0  'int x; int main() {return x; }'
+assert 8  'int x; int main() {return sizeof(x); }'
 
 echo OK

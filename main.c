@@ -11,11 +11,11 @@ int main(int argc, char **argv) {
     // トークナイズする
     token = tokenize(argv[1]);
     // トークンを抽象構文木にパースする
-    Function *prog = program();
+    Program *prog = program();
     add_type(prog);
 
     // ローカル変数のオフセットを設定
-    for (Function *fn = prog; fn; fn = fn->next) {
+    for (Function *fn = prog->fns; fn; fn = fn->next) {
         int offset = 0;
         for (VarList *vl = fn->locals; vl; vl = vl->next) {
             Var *var = vl->var;

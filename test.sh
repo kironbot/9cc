@@ -73,5 +73,7 @@ assert 32 'int main() { int x[4]; return sizeof(x);}'
 assert 3  'int x; int main() {x=3; return x; }'
 assert 0  'int x; int main() {return x; }'
 assert 8  'int x; int main() {return sizeof(x); }'
+assert 1  'int main() {char x; return sizeof(x); }'
+assert 10 'int main() {char x[10]; return sizeof(x); }'
 
 echo OK

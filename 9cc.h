@@ -103,6 +103,7 @@ typedef enum {
     ND_BLOCK,   // {...}
     ND_FUNCALL, // 関数呼び出し
     ND_EXPR_STMT, // 宣言文
+    ND_STMT_EXPR, // (...)
 } NodeKind;
 
 typedef struct Node Node;
@@ -124,7 +125,7 @@ struct Node {
     Node *init;
     Node *inc;
 
-    // ブロック {...}
+    // ブロック {...} or ステートメント (...)
     Node *body;
 
     // 関数呼び出し

@@ -421,6 +421,24 @@ Node *postfix() {
     return node;
 }
 
+// stmt-expr = "(" "{" stmt stmt* "}" ")"
+Node *stmt_expr(Token *tok) {
+    Node *node = new_node(ND_STMT_EXPR, tok);
+    node->body = stmt();
+    Node *cur = node->body;
+
+    while (!consume("}")) {
+        cur->next = stmt();
+        cur = cur->next;
+    }
+    expect(")");
+
+    if (cur->kind != ND_EXPR_STMT)
+        error_tok(cur->tok, "stmt expr returning void is not supported");
+    *cur = *cur->lhs;
+    return node;
+}
+
 // func-args = "(" (assign ("," assign)*)? ")"
 Node *func_args() {
     if (consume(")")) return NULL;
@@ -435,13 +453,20 @@ Node *func_args() {
     return head;
 }
 
-// primary = "(" expr ")" | "sizeof" unary | ident func-args? | str | num
-// args = "(" ident ("," ident)* ")"
+// primary = "(" "{" stmt-expr-tail
+//         | "(" expr ")"
+//         | "sizeof" unary
+//         | ident func-args?
+//         | str 
+//         | num
 Node *primary() {
     Token *tok;
 
     // 次のトークンが'('なら'(' expr ')'のはず
-    if (consume("(")) {
+    if (tok = consume("(")) {
+        if (consume("{"))
+            return stmt_expr(tok);
+
         Node *node = expr();
         expect(")");
         return node;

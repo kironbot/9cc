@@ -15,7 +15,7 @@ assert() {
     input="$2"
 
     ./9cc "$input" > tmp.s
-    cc -static -o tmp tmp.s tmp2.o
+    gcc -static -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
 
@@ -75,5 +75,8 @@ assert 0  'int x; int main() {return x; }'
 assert 8  'int x; int main() {return sizeof(x); }'
 assert 1  'int main() {char x; return sizeof(x); }'
 assert 10 'int main() {char x[10]; return sizeof(x); }'
+assert 97 'int main() {return "abc"[0]; }'
+assert 98 'int main() {return "abc"[1]; }'
+assert 0  'int main() {return "abc"[3]; }'
 
 echo OK

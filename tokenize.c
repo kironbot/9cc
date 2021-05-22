@@ -184,7 +184,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        // 識別子
+        // Identity
         if (is_alpha(*p)) {
             char *q = p++;
             while (is_alnum(*p)) p++;
@@ -192,7 +192,22 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        // 数字
+        // String
+        if (*p == '"') {
+            char *q = p++;
+            while (*p && *p != '"')
+                p++;
+            if (!*p)
+                error_at(q, "unclosed string literal");
+            p++;
+
+            cur = new_token(TK_STR, cur, q, p - q);
+            cur->contents = strndup(q + 1, p - q - 2);
+            cur->cont_len = p - q - 1;
+            continue;
+        }
+
+        // Int
         if (isdigit(*p)) {
             cur = new_token(TK_NUM, cur, p, 0);
             char *q = p;

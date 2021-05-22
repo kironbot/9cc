@@ -76,7 +76,7 @@ void visit(Node *node) {
             node->lhs = node->rhs;
             node->rhs = tmp;
         }
-        if (node->rhs->ty->kind == TY_PTR)
+        if (node->rhs->ty->base)
             error_tok(node->tok, "invalid pointer arithmetic operands");
         node->ty = node->lhs->ty;
         return;
@@ -86,13 +86,13 @@ void visit(Node *node) {
         node->ty = node->lhs->ty;
         return;
     case ND_ASSIGN:
+        node->ty = node->lhs->ty;
+        return;
+    case ND_ADDR:
         if (node->lhs->ty->kind == TY_ARRAY)
             node->ty = pointer_to(node->lhs->ty->base);
         else
             node->ty = pointer_to(node->lhs->ty);
-        return;
-    case ND_ADDR:
-        node->ty = pointer_to(node->lhs->ty);
         return;
     case ND_DEREF:
         if (!node->lhs->ty->base)

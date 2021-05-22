@@ -28,15 +28,15 @@ Node *new_binary(NodeKind kind, Node *lhs, Node *rhs, Token *tok) {
     return node;
 }
 
-Node *new_num(int val, Token *tok) {
-    Node *node = new_node(ND_NUM, tok);
-    node->val = val;
-    return node;
-}
-
 Node *new_unary(NodeKind kind, Node *expr, Token *tok) {
     Node *node = new_node(kind, tok);
     node->lhs = expr;
+    return node;
+}
+
+Node *new_num(int val, Token *tok) {
+    Node *node = new_node(ND_NUM, tok);
+    node->val = val;
     return node;
 }
 
@@ -372,7 +372,7 @@ Node *add() {
     for(;;) {
         if (tok = consume("+"))
             node = new_binary(ND_ADD, node, mul(), tok);
-        if (tok = consume("-"))
+        else if (tok = consume("-"))
             node = new_binary(ND_SUB, node, mul(), tok);
         else
             return node;
@@ -397,15 +397,14 @@ Node *mul() {
 //       | postfix
 Node *unary() {
     Token *tok;
-    if (tok = consume("+"))
-        return primary();
+    if (consume("+"))
+        return unary();
     if (tok = consume("-"))
-        return new_binary(ND_SUB, new_num(0, tok), primary(), tok);
+        return new_binary(ND_SUB, new_num(0, tok), unary(), tok);
     if (tok = consume("&"))
         return new_unary(ND_ADDR, unary(), tok);
     if (tok = consume("*"))
         return new_unary(ND_DEREF, unary(), tok);
-    
     return postfix();
 }
 
@@ -478,7 +477,7 @@ Node *primary() {
         return node;
     }
 
-    if (consume("sizeof"))
+    if (tok = consume("sizeof"))
         return new_unary(ND_SIZEOF, unary(), tok);
 
     if (tok = consume_ident()) {

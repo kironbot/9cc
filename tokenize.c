@@ -40,7 +40,7 @@ void verror_at(char *loc, char *fmt, va_list ap) {
     fprintf(stderr, "%.*s\n", (int)(end - line), line);
 
     int pos = loc - line + indent;
-    fprintf(stderr, "%*s", pos, " "); // 空白 x pos
+    fprintf(stderr, "%*s", pos, ""); // 空白 x pos
     fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
     fprintf(stderr, "\n");
@@ -179,7 +179,7 @@ char get_escape_char(char c) {
     switch(c) {
     case 'a': return '\a';
     case 'b': return '\b';
-    case 'f': return '\v';
+    case 'f': return '\f';
     case 'n': return '\n';
     case 'r': return '\r';
     case 't': return '\t';

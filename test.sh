@@ -83,5 +83,8 @@ assert 27  'int main() {return "\e"[0];} '
 assert 0  'int main() {return "\0"[0]; }'
 assert 0  'int main() {return ({0;}); }'
 assert 2  'int main() {return ({0;1;2;}); }'
+assert 2  'int main() {/* return 1;*/ return 2;}'
+assert 2  'int main() {// return 1;
+    return 2;}'
 
 echo OK

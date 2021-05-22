@@ -78,5 +78,8 @@ assert 10 'int main() {char x[10]; return sizeof(x); }'
 assert 97 'int main() {return "abc"[0]; }'
 assert 98 'int main() {return "abc"[1]; }'
 assert 0  'int main() {return "abc"[3]; }'
+assert 7  'int main() {return "\a"[0]; }'
+assert 27  'int main() {return "\e"[0];} '
+assert 0  'int main() {return "\0"[0]; }'
 
 echo OK

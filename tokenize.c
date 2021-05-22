@@ -1,5 +1,7 @@
 #include "9cc.h"
 
+// 入力ファイル
+char *filename;
 // 入力文字列のトークンを保存するグローバル変数
 Token *token;
 // 入力プログラムを保存するグローバル変数
@@ -18,8 +20,26 @@ void error(char *fmt, ...) {
 
 // エラー箇所を報告する
 void verror_at(char *loc, char *fmt, va_list ap) {
-    int pos = loc - user_input;
-    fprintf(stderr, "%s\n", user_input);
+    // Find a line containing 'loc'
+    char *line = loc;
+    while (user_input < line && line[-1] != '\n')
+        line--;
+    
+    char *end = loc;
+    while (*end != '\n')
+        end++;
+    
+    // Get a line number
+    int line_num = 1;
+    for (char *p = user_input; p < line; p++)
+        if (*p == '\n')
+            line_num++;
+    
+    // Print out the line
+    int indent = fprintf(stderr, "%s:%d: ", filename, line_num);
+    fprintf(stderr, "%.*s\n", (int)(end - line), line);
+
+    int pos = loc - line + indent;
     fprintf(stderr, "%*s", pos, " "); // 空白 x pos
     fprintf(stderr, "^ ");
     vfprintf(stderr, fmt, ap);
@@ -201,7 +221,8 @@ Token *read_string_literal(Token *cur, char *start) {
 
 
 // 入力文字列pをトークナイズしてそれを返す
-Token *tokenize(char *p) {
+Token *tokenize() {
+    char *p = user_input;
     Token head;
     head.next = NULL;
     Token *cur = &head;

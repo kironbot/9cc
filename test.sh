@@ -14,7 +14,7 @@ assert() {
     expected="$1"
     input="$2"
 
-    ./9cc "$input" > tmp.s
+    ./9cc <(echo "$input") > tmp.s
     gcc -static -o tmp tmp.s tmp2.o
     ./tmp
     actual="$?"
@@ -27,8 +27,8 @@ assert() {
     fi
 }
 
-assert 1  "int main() { return 1;}"
-assert 42 "int main() { return 42;}"
+assert 1  'int main() { return 1;}'
+assert 42 'int main() { return 42;}'
 assert 21 'int main () { return 5+20-4; }'
 assert 41 'int main () { return  12 + 34 - 5 ; }'
 assert 6  'int main () { return 2 * 3; }'

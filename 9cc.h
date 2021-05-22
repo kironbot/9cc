@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -36,6 +37,7 @@ struct Token {
 };
 
 // グローバル変数
+extern char *filename;
 extern char *user_input;
 extern Token *token;
 
@@ -52,7 +54,7 @@ int expect_number();
 char *expect_ident();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
-Token *tokenize(char *p);
+Token *tokenize();
 
 //
 // parse.c

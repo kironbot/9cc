@@ -1,8 +1,18 @@
 #include "9cc.h"
 
+// Scope for struct tags
+typedef struct TagScope TagScope;
+struct TagScope {
+    TagScope *next;
+    char *name;
+    Type *ty;
+};
+
 VarList *locals;
 VarList *globals;
+
 VarList *scope;
+TagScope *tag_scope;
 
 // Find a variable by name
 Var *find_var(Token *tok) {
@@ -11,6 +21,13 @@ Var *find_var(Token *tok) {
         if (strlen(var->name) == tok->len && !memcmp(tok->str, var->name, tok->len))
             return var;
     }
+    return NULL;
+}
+
+TagScope *find_tag(Token *tok) {
+    for (TagScope *sc = tag_scope; sc; sc = sc->next)
+        if (strlen(sc->name) == tok->len && !memcmp(tok->str, sc->name, tok->len))
+            return sc;
     return NULL;
 }
 
@@ -153,11 +170,31 @@ Type *read_type_suffix(Type *base) {
     return array_of(base, sz);
 }
 
-// struct-decl = "struct" "{" struct-member "}"
+void push_tag_scope(Token *tok, Type *ty) {
+    TagScope *sc = calloc(1, sizeof(TagScope));
+    sc->next = tag_scope;
+    sc->name = strndup(tok->str, tok->len);
+    sc->ty = ty;
+    tag_scope = sc;
+}
+
+// struct-decl = "struct" ident
+//             | "struct" idnet? "{" struct-member "}"
 Type *struct_decl() {
     expect("struct");
+
+    // Read a struct tag
+    Token *tag = consume_ident();
+    if (tag && !peek("{")) {
+        TagScope *sc = find_tag(tag);
+        if (!sc)
+            error_tok(tag, "unknown struct type");
+        return sc->ty;
+    }
+
     expect("{");
 
+    // Read struct members
     Member head;
     head.next = NULL;
     Member *cur = &head;
@@ -180,6 +217,11 @@ Type *struct_decl() {
         if (ty->align < mem->ty->align)
             ty->align = mem->ty->align;
     }
+
+
+    // Register the struct type if a name was given
+    if (tag)
+        push_tag_scope(tag, ty);
 
     return ty;
 }
@@ -255,9 +297,13 @@ void global_var() {
 }
 
 // declaration = basetype ident ("[" num "]")* ("=" expr) ";"
+//             | basetype ";"
 Node *declaration() {
     Token *tok = token;
     Type *ty = basetype();
+    if (consume(";"))
+        return new_node(ND_NULL, tok);
+
     char *name = expect_ident();
     ty = read_type_suffix(ty);
     Var *var = push_var(name, ty, true);
@@ -344,12 +390,14 @@ Node *stmt() {
         head.next = NULL;
         Node *cur = &head;
 
-        VarList *sc = scope;
+        VarList *sc1 = scope;
+        TagScope *sc2 = tag_scope;
         while (!consume("}")) {
             cur->next = stmt();
             cur = cur->next;
         }
-        scope = sc;
+        scope = sc1;
+        tag_scope = sc2;
 
         Node *node = new_node(ND_BLOCK, tok);
         node->body = head.next;
@@ -481,7 +529,8 @@ Node *postfix() {
 
 // stmt-expr = "(" "{" stmt stmt* "}" ")"
 Node *stmt_expr(Token *tok) {
-    VarList *sc = scope;
+    VarList *sc1 = scope;
+    TagScope *sc2 = tag_scope;
 
     Node *node = new_node(ND_STMT_EXPR, tok);
     node->body = stmt();
@@ -493,7 +542,8 @@ Node *stmt_expr(Token *tok) {
     }
     expect(")");
 
-    scope = sc;
+    scope = sc1;
+    tag_scope = sc2;
 
     if (cur->kind != ND_EXPR_STMT)
         error_tok(cur->tok, "stmt expr returning void is not supported");

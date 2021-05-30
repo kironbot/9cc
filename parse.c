@@ -171,13 +171,15 @@ Program *program() {
 }
 
 // type-specifier = builtin-type | struct-decl | typedef-name
-// builtin-type   = "void" | "char" | "short" | "int" | "long"
+// builtin-type   = "void" | "_Bool" | "char" | "short" | "int" | "long"
 Type *type_specifier() {
     if (!is_typename(token))
         error_tok(token, "typename expected");
 
     if (consume("void"))
         return void_type();
+    if (consume("_Bool"))
+        return bool_type();
     else if (consume("char"))
         return char_type();
     else if (consume("short"))
@@ -393,7 +395,7 @@ Node *read_expr_stmt() {
 bool is_typename() {
     return peek("void") || peek("char") || peek("short")  ||
            peek("int")  || peek("long") || peek("struct") ||
-           find_typedef(token);
+           peek("_Bool")|| find_typedef(token);
 }
 
 // stmt = "return" expr ";"

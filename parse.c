@@ -553,7 +553,7 @@ bool is_typename() {
 // stmt = "return" expr ";"
 //      | "if" "(" expr ")" stmt ("else" stmt)?
 //      | "while" "(" expr ")" stmt
-//      | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//      | "for" "(" (expr? ";" | declaration) expr? ";" expr? ")" stmt
 //      | "{" stmt* "}" 
 //      | declaration
 //      | expr ";"
@@ -588,10 +588,17 @@ Node *stmt() {
         Node *node = new_node(ND_FOR, tok);
         expect("(");
 
+        VarScope *sc1 = var_scope;
+        TagScope *sc2 = tag_scope;
+
         // 初期条件があれば読む
         if (!consume(";")) {
-            node->init = read_expr_stmt();
-            expect(";");
+            if (is_typename()) {
+                node->init = declaration();
+            } else {
+                node->init = read_expr_stmt();
+                expect(";");
+            }
         }
         // 実行条件があれば読む
         if (!consume(";")) {
@@ -604,6 +611,9 @@ Node *stmt() {
             expect(")");
         }
         node->then = stmt();
+        
+        var_scope = sc1;
+        tag_scope = sc2;
         return node;
     }
 

@@ -263,7 +263,7 @@ Token *tokenize() {
         }
 
         // 長さ1の記号トークン
-        if (strchr("+-*/()<>;={},&[].", *p)) {
+        if (strchr("+-*/()<>;={},&[].,", *p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             p++;
             continue;

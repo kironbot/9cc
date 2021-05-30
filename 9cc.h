@@ -95,6 +95,7 @@ typedef enum {
     ND_NUM,     // 整数
     ND_NULL,    // NULL
     ND_ASSIGN,  // =
+    ND_COMMA,   // ,
     ND_MEMBER,  // . (struct member access)
     ND_ADDR,    // 単項 &
     ND_DEREF,   // 単項 *

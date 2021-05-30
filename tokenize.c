@@ -167,7 +167,7 @@ char *starts_with_reserved(char *p) {
     }
 
     // 長さ2の記号トークン
-    static char *ops[] = {"==", "!=", "<=", ">=", "->"};
+    static char *ops[] = {"==", "!=", "<=", ">=", "->", "++", "--"};
 
     for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++) {
         if (startswith(p, ops[i]))

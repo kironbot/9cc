@@ -726,7 +726,8 @@ Node *mul() {
     }
 }
 
-// unary = ("+" | "-" | "*" | "&")? unary
+// unary = ("+" | "-" | "*" | "&")? cast
+//       | ("++" | "--") unary
 //       | postfix
 Node *unary() {
     Token *tok;
@@ -738,10 +739,14 @@ Node *unary() {
         return new_unary(ND_ADDR, unary(), tok);
     if (tok = consume("*"))
         return new_unary(ND_DEREF, unary(), tok);
+    if (tok = consume("++"))
+        return new_unary(ND_PRE_INC, unary(), tok);
+    if (tok = consume("--"))
+        return new_unary(ND_PRE_DEC, unary(), tok);
     return postfix();
 }
 
-// postfix = primary ("[" expr "]" | "." ident | "->" ident)* 
+// postfix = primary ("[" expr "]" | "." ident | "->" ident | "++" | "--")* 
 Node *postfix() {
     Node *node = primary();
     Token *tok;
@@ -769,9 +774,17 @@ Node *postfix() {
             continue;
         }
 
+        if (tok = consume("++")) {
+            node = new_unary(ND_POST_INC, node, tok);
+            continue;
+        }
+
+        if (tok = consume("--")) {
+            node = new_unary(ND_POST_DEC, node, tok);
+            continue;
+        }
         return node;
     }
-
 }
 
 // stmt-expr = "(" "{" stmt stmt* "}" ")"

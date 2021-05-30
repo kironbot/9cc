@@ -93,6 +93,7 @@ typedef enum {
     ND_LT,      // <
     ND_LE,      // <=
     ND_NUM,     // 整数
+    ND_CAST,    // Type cast
     ND_NULL,    // NULL
     ND_ASSIGN,  // =
     ND_PRE_INC, // pre ++
@@ -107,6 +108,8 @@ typedef enum {
     ND_MEMBER,  // . (struct member access)
     ND_ADDR,    // 単項 &
     ND_DEREF,   // 単項 *
+    ND_NOT,     // !
+    ND_BITNOT,  // ~
     ND_VAR,     // ローカル変数
     ND_RETURN,  // return
     ND_IF,      // if

@@ -118,6 +118,7 @@ void visit(Node *node) {
     case ND_NE:
     case ND_LT:
     case ND_LE:
+    case ND_NOT:
     case ND_NUM:
         node->ty = int_type();
         return;
@@ -148,6 +149,7 @@ void visit(Node *node) {
     case ND_A_SUB:
     case ND_A_MUL:
     case ND_A_DIV:
+    case ND_BITNOT:
         node->ty = node->lhs->ty;
         return;
     case ND_COMMA:

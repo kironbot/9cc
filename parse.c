@@ -115,11 +115,12 @@ char *new_label() {
     return strndup(buf, 20);
 }
 
-// 先に宣言しておく
 Function *function();
 Type *type_specifier();
 Type *declarator(Type *ty, char **name);
+Type *abstract_declarator(Type *ty);
 Type *type_suffix(Type *ty);
+Type *type_name();
 Type *struct_decl();
 Type *enum_specifier();
 Member *struct_member();
@@ -133,6 +134,7 @@ Node *equality();
 Node *relational();
 Node *add();
 Node *mul();
+Node *cast();
 Node *unary();
 Node *postfix();
 Node *primary();
@@ -293,6 +295,21 @@ Type *declarator(Type *ty, char **name) {
     return type_suffix(ty);
 }
 
+// abstract-declarator = "*"* ("(" abstract-declarator ")")? type-suffix
+Type *abstract_declarator(Type *ty) {
+    while (consume("*"))
+        ty = pointer_to(ty);
+    
+    if (consume("(")) {
+        Type *placeholder = calloc(1, sizeof(Type));
+        Type *new_ty = abstract_declarator(placeholder);
+        expect(")");
+        *placeholder = *type_suffix(ty);
+        return new_ty;
+    }
+    return type_suffix(ty);
+}
+
 // type-suffix = ("[" num "]" type-suffix)?
 Type *type_suffix(Type *ty) {
     if (!consume("["))
@@ -301,6 +318,13 @@ Type *type_suffix(Type *ty) {
     expect("]");
     ty = type_suffix(ty);
     return array_of(ty, sz);
+}
+
+// type-name = type-specifier abstract-declarator type-suffix
+Type *type_name() {
+    Type *ty = type_specifier();
+    ty = abstract_declarator(ty);
+    return type_suffix(ty);
 }
 
 void push_tag_scope(Token *tok, Type *ty) {
@@ -722,33 +746,55 @@ Node *add() {
     }
 }
 
+// mul = cast ("*" cast | "/" cast)*
 Node *mul() {
-    Node *node = unary();
+    Node *node = cast();
     Token *tok;
 
     for (;;) {
         if (tok = consume("*"))
-            node = new_binary(ND_MUL, node, unary(), tok);
+            node = new_binary(ND_MUL, node, cast(), tok);
         else if (tok = consume("/"))
-            node = new_binary(ND_DIV, node, unary(), tok);
+            node = new_binary(ND_DIV, node, cast(), tok);
         else
             return node;
     }
 }
 
-// unary = ("+" | "-" | "*" | "&")? cast
+// cast = "(" type-name ")" cast | unary
+Node *cast() {
+    Token *tok = token;
+
+    if (consume("(")) {
+        if (is_typename()) {
+            Type *ty = type_name();
+            expect(")");
+            Node *node = new_unary(ND_CAST, cast(), tok);
+            node->ty = ty;
+            return node;
+        }
+        token = tok;
+    }
+    return unary();
+}
+
+// unary = ("+" | "-" | "*" | "&" | "!" | "~")? cast
 //       | ("++" | "--") unary
 //       | postfix
 Node *unary() {
     Token *tok;
     if (consume("+"))
-        return unary();
+        return cast();
     if (tok = consume("-"))
-        return new_binary(ND_SUB, new_num(0, tok), unary(), tok);
+        return new_binary(ND_SUB, new_num(0, tok), cast(), tok);
     if (tok = consume("&"))
-        return new_unary(ND_ADDR, unary(), tok);
+        return new_unary(ND_ADDR, cast(), tok);
     if (tok = consume("*"))
-        return new_unary(ND_DEREF, unary(), tok);
+        return new_unary(ND_DEREF, cast(), tok);
+    if (tok = consume("!"))
+        return new_unary(ND_NOT, cast(), tok);
+    if (tok = consume("~"))
+        return new_unary(ND_BITNOT, cast(), tok);
     if (tok = consume("++"))
         return new_unary(ND_PRE_INC, unary(), tok);
     if (tok = consume("--"))

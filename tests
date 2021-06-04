@@ -369,6 +369,9 @@ int main() {
 
   assert(3, ({ int x[2]; x[0]=3; param_decay(x); }), "int x[2]; x[0]=3; param_decay(x);");
 
+  assert(8, ({ struct *foo; sizeof(foo); }), "struct *foo; sizeof(foo);");
+  assert(4, ({ struct T *foo; struct T {int x;}; sizeof(struct T); }), "struct T *foo; struct T {int x;}; sizeof(struct T);");
+
   printf("OK\n");
   return 0;
 }

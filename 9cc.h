@@ -113,6 +113,8 @@ typedef enum {
     ND_DEREF,   // 単項 *
     ND_NOT,     // !
     ND_BITNOT,  // ~
+    ND_LOGAND,  // &&
+    ND_LOGOR,   // ||
     ND_VAR,     // ローカル変数
     ND_RETURN,  // return
     ND_IF,      // if

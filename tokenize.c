@@ -168,7 +168,7 @@ char *starts_with_reserved(char *p) {
 
     // 長さ2の記号トークン
     static char *ops[] = {"==", "!=", "<=", ">=", "->", "++", "--",
-                          "+=", "-=", "*=", "/="};
+                          "+=", "-=", "*=", "/=", "&&", "||"};
 
     for (int i = 0; i < sizeof(ops) / sizeof(*ops); i++) {
         if (startswith(p, ops[i]))
@@ -294,7 +294,7 @@ Token *tokenize() {
             continue;
         }
 
-        error_at(token->str, "トークナイズできません");
+        error_at(token->str, "cannot tokenize");
     }
 
     new_token(TK_EOF, cur, p, 0);

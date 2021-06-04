@@ -485,6 +485,11 @@ VarList *read_func_param() {
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
 
+    // "array of T" is converted to "pointer to T" only in the prameter
+    // context. e.g. *argv[] is converted to **argv by this.
+    if (ty->kind == TY_ARRAY)
+        ty = pointer_to(ty->base);
+
     Var *var = push_var(name, ty, true, tok);
     push_scope(name)->var = var;
 

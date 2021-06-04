@@ -45,7 +45,7 @@ void gen_lval(Node *node) {
 void load(Type *ty) {
     printf("    pop rax\n");
 
-    int sz = size_of(ty);
+    int sz = size_of(ty, NULL);
 
     if (sz == 1)
         printf("    movsx rax, byte ptr [rax]\n");
@@ -70,7 +70,7 @@ void store(Type *ty) {
     }
 
 
-    int sz = size_of(ty);
+    int sz = size_of(ty, NULL);
 
     if (sz == 1)
         printf("    mov [rax], dil\n");
@@ -84,15 +84,17 @@ void store(Type *ty) {
     printf("    push rdi\n");
 }
 
-void inc(Type *ty) {
+void inc(Node *node) {
+    int sz = node->ty->base ? size_of(node->ty->base, node->tok) : 1;
     printf("    pop rax\n");
-    printf("    add rax, %d\n", ty->base ? size_of(ty->base) : 1);
+    printf("    add rax, %d\n", sz);
     printf("    push rax\n");
 }
 
-void dec(Type *ty) {
+void dec(Node *node) {
+    int sz = node->ty->base ? size_of(node->ty->base, node->tok) : 1;
     printf("    pop rax\n");
-    printf("    sub rax, %d\n", ty->base ? size_of(ty->base) : 1);
+    printf("    sub rax, %d\n", sz);
     printf("    push rax\n");
 }
 
@@ -123,31 +125,31 @@ void gen(Node *node) {
             gen_lval(node->lhs);
             printf("    push [rsp]\n");
             load(node->ty);
-            inc(node->ty);
+            inc(node);
             store(node->ty);
             return;
         case ND_PRE_DEC:
             gen_lval(node->lhs);
             printf("    push [rsp]\n");
             load(node->ty);
-            dec(node->ty);
+            dec(node);
             store(node->ty);
             return;
         case ND_POST_INC:
             gen_lval(node->lhs);
             printf("    push [rsp]\n");
             load(node->ty);
-            inc(node->ty);
+            inc(node);
             store(node->ty);
-            dec(node->ty);
+            dec(node);
             return;
         case ND_POST_DEC:
             gen_lval(node->lhs);
             printf("    push [rsp]\n");
             load(node->ty);
-            dec(node->ty);
+            dec(node);
             store(node->ty);
-            inc(node->ty);
+            inc(node);
             return;
         case ND_A_ADD:
         case ND_A_SUB:
@@ -163,12 +165,12 @@ void gen(Node *node) {
             switch (node->kind) {
             case ND_A_ADD:
                 if (node->ty->base)
-                    printf("    imul rdi, %d\n", size_of(node->ty->base));
+                    printf("    imul rdi, %d\n", size_of(node->ty->base, node->tok));
                 printf("    add rax, rdi\n");
                 break;
             case ND_A_SUB:
                 if (node->ty->base)
-                    printf("    imul rdi, %d\n", size_of(node->ty->base));
+                    printf("    imul rdi, %d\n", size_of(node->ty->base, node->tok));
                 printf("    sub rax, rdi\n");
                 break;
             case ND_A_MUL:
@@ -351,12 +353,12 @@ void gen(Node *node) {
     switch (node->kind) {
         case ND_ADD:
             if (node->ty->base)  
-                printf("    imul rdi, %d\n", size_of(node->ty->base));
+                printf("    imul rdi, %d\n", size_of(node->ty->base, node->tok));
             printf("    add rax, rdi\n");
             break;
         case ND_SUB:
             if (node->ty->base)  
-                printf("    imul rdi, %d\n", size_of(node->ty->base));
+                printf("    imul rdi, %d\n", size_of(node->ty->base, node->tok));
             printf("    sub rax, rdi\n");
             break;
         case ND_MUL:
@@ -407,7 +409,7 @@ void emit_data(Program *prog) {
         Var *var = vl->var;
         printf("%s:\n", var->name);
         if (!var->contents) {
-            printf("    .zero %d\n", size_of(var->ty));
+            printf("    .zero %d\n", size_of(var->ty, var->tok));
             continue;
         }
 
@@ -417,7 +419,7 @@ void emit_data(Program *prog) {
 }
 
 void load_arg(Var *var, int idx) {
-    int sz = size_of(var->ty);
+    int sz = size_of(var->ty, var->tok);
     if (sz == 1)
         printf("    mov [rbp-%d], %s\n", var->offset, argreg1[idx]);
     else if (sz == 2)

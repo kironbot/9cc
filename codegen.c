@@ -6,6 +6,7 @@ char *argreg4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char *argreg8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 int labelseq;
 int brkseq;
+int contseq;
 char *funcname;
 
 void gen(Node *node);
@@ -276,24 +277,27 @@ void gen(Node *node) {
         case ND_WHILE: {
             int seq = labelseq++;
             int brk = brkseq;
-            brkseq = seq;
+            int cont = contseq;
+            brkseq = contseq = seq;
 
-            printf(".Lbegin%d:\n", seq);
+            printf(".L.continue.%d:\n", seq);
             gen(node->cond);
             printf("    pop rax\n");
             printf("    cmp rax, 0\n");
             printf("    je  .L.break.%d\n", seq);
             gen(node->then);
-            printf("    jmp .Lbegin%d\n", seq);
+            printf("    jmp .L.continue.%d\n", seq);
             printf(".L.break.%d:\n", seq);
 
             brkseq = brk;
+            contseq = cont;
             return;
         }
         case ND_FOR: {
             int seq = labelseq++;
             int brk = brkseq;
-            brkseq = seq;
+            int cont = contseq;
+            brkseq = contseq = seq;
 
             // 初期条件
             if (node->init) gen(node->init);
@@ -306,12 +310,14 @@ void gen(Node *node) {
             }
             // forループの中身
             gen(node->then);
+            printf(".L.continue.%d:\n", seq);
             // インクリメント条件
             if (node->inc) gen(node->inc);
             printf("    jmp .Lbegin%d\n", seq);
             printf(".L.break.%d:\n", seq);
 
             brkseq = brk;
+            contseq = cont;
             return;
         }
         case ND_BLOCK:
@@ -323,6 +329,11 @@ void gen(Node *node) {
             if (brkseq == 0)
                 error_tok(node->tok, "stray break");
             printf("    jmp .L.break.%d\n", brkseq);
+            return;
+        case ND_CONTINUE:
+            if (contseq == 0)
+                error_tok(node->tok, "stray continue");
+            printf("    jmp .L.continue.%d\n", contseq);
             return;
         case ND_FUNCALL: {
             int nargs = 0;

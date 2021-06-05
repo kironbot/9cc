@@ -4,7 +4,8 @@ char *argreg1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 char *argreg2[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 char *argreg4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char *argreg8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
-int labelseq = 0;
+int labelseq;
+int brkseq;
 char *funcname;
 
 void gen(Node *node);
@@ -274,18 +275,25 @@ void gen(Node *node) {
         }
         case ND_WHILE: {
             int seq = labelseq++;
+            int brk = brkseq;
+            brkseq = seq;
+
             printf(".Lbegin%d:\n", seq);
             gen(node->cond);
             printf("    pop rax\n");
             printf("    cmp rax, 0\n");
-            printf("    je  .Lend%d\n", seq);
+            printf("    je  .L.break.%d\n", seq);
             gen(node->then);
             printf("    jmp .Lbegin%d\n", seq);
-            printf(".Lend%d:\n", seq);
+            printf(".L.break.%d:\n", seq);
+
+            brkseq = brk;
             return;
         }
         case ND_FOR: {
             int seq = labelseq++;
+            int brk = brkseq;
+            brkseq = seq;
 
             // 初期条件
             if (node->init) gen(node->init);
@@ -294,20 +302,27 @@ void gen(Node *node) {
                 gen(node->cond);
                 printf("    pop rax\n");
                 printf("    cmp rax, 0\n");
-                printf("    je  .Lend%d\n", seq);
+                printf("    je  .L.break.%d\n", seq);
             }
             // forループの中身
             gen(node->then);
             // インクリメント条件
             if (node->inc) gen(node->inc);
             printf("    jmp .Lbegin%d\n", seq);
-            printf(".Lend%d:\n", seq);
+            printf(".L.break.%d:\n", seq);
+
+            brkseq = brk;
             return;
         }
         case ND_BLOCK:
         case ND_STMT_EXPR:
             for (Node *n = node->body; n; n = n->next) 
                 gen(n);
+            return;
+        case ND_BREAK:
+            if (brkseq == 0)
+                error_tok(node->tok, "stray break");
+            printf("    jmp .L.break.%d\n", brkseq);
             return;
         case ND_FUNCALL: {
             int nargs = 0;

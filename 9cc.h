@@ -123,6 +123,7 @@ typedef enum {
     ND_FOR,     // for
     ND_SIZEOF,  // sizeof
     ND_BLOCK,   // {...}
+    ND_BREAK,   // break
     ND_FUNCALL, // 関数呼び出し
     ND_EXPR_STMT, // 宣言文
     ND_STMT_EXPR, // (...)

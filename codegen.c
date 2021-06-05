@@ -86,6 +86,25 @@ void store(Type *ty) {
     printf("    push rdi\n");
 }
 
+void truncate(Type *ty) {
+    printf("    pop rax\n");
+
+    if (ty->kind == TY_BOOL) {
+        printf("    cmp rax, 0\n");
+        printf("    setne al\n");
+    }
+
+    int sz = size_of(ty, NULL);
+    if (sz == 1) {
+        printf("    movsx rax, al\n");
+    } else if (sz == 2) {
+        printf("    movsx rax, ax\n");
+    } else if (sz == 4) {
+        printf("    movsxd rax, eax\n");
+    }
+    printf("    push rax\n");
+}
+
 void inc(Node *node) {
     int sz = node->ty->base ? size_of(node->ty->base, node->tok) : 1;
     printf("    pop rax\n");
@@ -403,6 +422,9 @@ void gen(Node *node) {
             printf("    add rsp, 8\n");
             printf(".Lend%d:\n", seq);
             printf("    push rax\n");
+
+            if (node->ty->kind != TY_VOID)
+                truncate(node->ty);
             return;
         }
         case ND_RETURN:

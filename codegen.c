@@ -4,7 +4,7 @@ char *argreg1[] = {"dil", "sil", "dl", "cl", "r8b", "r9b"};
 char *argreg2[] = {"di", "si", "dx", "cx", "r8w", "r9w"};
 char *argreg4[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
 char *argreg8[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
-int labelseq;
+int labelseq = 1;
 int brkseq;
 int contseq;
 char *funcname;
@@ -106,7 +106,7 @@ void gen(Node *node) {
         case ND_NULL:
             return;
         case ND_NUM:
-            printf("    push %d\n", node->val);
+            printf("    push %ld\n", node->val);
             return;
         case ND_EXPR_STMT:
             gen(node->lhs);
@@ -320,6 +320,41 @@ void gen(Node *node) {
             contseq = cont;
             return;
         }
+        case ND_SWITCH: {
+            int seq = labelseq++;
+            int brk = brkseq;
+            brkseq = seq;
+            node->case_label = seq;
+
+            gen(node->cond);
+            printf("    pop rax\n");
+
+            for (Node *n = node->case_next; n; n = n->case_next) {
+                n->case_label = labelseq++;
+                n->case_end_label = seq;
+                printf("    cmp rax, %ld\n", n->val);
+                printf("    je .L.case.%d\n", n->case_label);
+            }
+
+            if (node->default_case) {
+                int i = labelseq++;
+                node->default_case->case_end_label = seq;
+                node->default_case->case_label = i;
+                printf("    jmp .L.case.%d\n", i);
+            }
+
+            printf("    jmp .L.break.%d\n", seq);
+            gen(node->then);
+            printf(".L.break.%d:\n", seq);
+
+            brkseq = brk;
+            return;
+        }
+        case ND_CASE:
+            printf(".L.case.%d:\n", node->case_label);
+            gen(node->lhs);
+            printf("    jmp .L.break.%d\n", node->case_end_label);
+            return;
         case ND_BLOCK:
         case ND_STMT_EXPR:
             for (Node *n = node->body; n; n = n->next) 

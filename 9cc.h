@@ -121,6 +121,8 @@ typedef enum {
     ND_IF,      // if
     ND_WHILE,   // while
     ND_FOR,     // for
+    ND_SWITCH,  // switch
+    ND_CASE,    // case
     ND_SIZEOF,  // sizeof
     ND_BLOCK,   // {...}
     ND_BREAK,   // break
@@ -165,7 +167,13 @@ struct Node {
     // Goto or labeled statement
     char *label_name;
 
-    int val;       // kindがND_NUMのとき使う
+    // Switch
+    Node *case_next;
+    Node *default_case;
+    int case_label;
+    int case_end_label;
+
+    long val;       // kindがND_NUMのとき使う
     Var *var;    // kindがND_VARのとき使う
 };
 

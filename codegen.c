@@ -175,7 +175,9 @@ void gen(Node *node) {
         case ND_A_ADD:
         case ND_A_SUB:
         case ND_A_MUL:
-        case ND_A_DIV: {
+        case ND_A_DIV:
+        case ND_A_SHL:
+        case ND_A_SHR: {
             gen_lval(node->lhs);
             printf("    push [rsp]\n");
             load(node->lhs->ty);
@@ -200,6 +202,14 @@ void gen(Node *node) {
             case ND_A_DIV:
                 printf("    cqo\n");
                 printf("    idiv rdi\n");
+                break;
+            case ND_A_SHL:
+                printf("    mov cl, dil\n");
+                printf("    shl rax, cl\n");
+                break;
+            case ND_A_SHR:
+                printf("    mov cl, dil\n");
+                printf("    sar rax, cl\n");
                 break;
             }
             printf("    push rax\n");
@@ -466,6 +476,14 @@ void gen(Node *node) {
             break;
         case ND_BITXOR:
             printf("    xor rax, rdi\n");
+            break;
+        case ND_SHL:
+            printf("    mov cl, dil\n");
+            printf("    shl rax, cl\n");
+            break;
+        case ND_SHR:
+            printf("    mov cl, dil\n");
+            printf("    sar rax, cl\n");
             break;
         case ND_EQ:
             printf("    cmp rax, rdi\n");

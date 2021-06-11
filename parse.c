@@ -654,17 +654,29 @@ Node *lvar_init_zero(Node *cur, Var *var, Type *ty, Designator *desg) {
 
 // lvar-initializer = assign
 //                  | "{" lvar-initializer ("," lvar-initializer)* ","? "}"
+// There are a few special rules for ambiguous initializers and
+// shorthand notations:
 //
-// If an initializer list is shorter than an array,
-// excess array elements are initialized with 0.
+// - If an initializer list is shorter than an array,
+//   excess array elements are initialized with 0.
 //
-// A char array can be initialized by a string literal.
-// ex) `char x[4] = "foo"` is equivalent to `char x[4] =
-// {'f', 'o', 'o', '\0'}`.
+// - A char array can be initialized by a string literal.
+//   ex) `char x[4] = "foo"` is equivalent to `char x[4] =
+//   {'f', 'o', 'o', '\0'}`.
+//
+// - If a rhs is an incomplete array, its size is set by
+//   counting the number of items on the rhs.
+//   ex) `x[] = {1,2,3}` has type `int[3]`
 Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg) {
     if (ty->kind == TY_ARRAY && ty->base->kind == TY_CHAR && token->kind == TK_STR) {
         Token *tok = token;
         token = token->next;
+
+        if (ty->is_incomplete) {
+            ty->array_size = tok->cont_len;
+            ty->is_incomplete = false;
+        }
+
 
         int len = (ty->array_size < tok->cont_len) ? ty->array_size : tok->cont_len;
         int i;
@@ -680,6 +692,8 @@ Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg) {
             Designator desg2 = {desg, i};
             cur = lvar_init_zero(cur, var, ty->base, &desg2);
         }
+
+
         return cur;
     }
 
@@ -703,6 +717,12 @@ Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg) {
             Designator desg2 = {desg, i++};
             cur = lvar_init_zero(cur, var, ty->base, &desg2);
         }
+
+        if (ty->is_incomplete) {
+            ty->array_size = i;
+            ty->is_incomplete = false;
+        }
+
         return cur;
     }
 

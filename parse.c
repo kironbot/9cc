@@ -564,6 +564,7 @@ Function *function() {
     // Construct a function object
     Function *fn = calloc(1, sizeof(Function));
     fn->name = name;
+    fn->is_static = ty->is_static;
     expect("(");
     fn->params = read_func_params();
     if (consume(";"))

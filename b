@@ -7,16 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Type Type;
-typedef struct Member Member;
-typedef struct Initializer Initializer;
 
 //
 // tokenize.c
 //
 
 // トークンの種類
-typedef enum {
     TK_RESERVED, // 記号
     TK_IDENT,    // 識別子
     TK_STR,   // 文字列
@@ -24,7 +20,6 @@ typedef enum {
     TK_EOF,      // 終端記号
 } TokenKind;
 
-typedef struct Token Token;
 
 // トークン型
 struct Token {
@@ -63,7 +58,6 @@ Token *tokenize();
 //
 
 // Variable
-typedef struct Var Var;
 struct Var {
     char *name;     // 変数名
     Type *ty;       // 型
@@ -77,14 +71,12 @@ struct Var {
     Initializer *initializer;
 };
 
-typedef struct VarList VarList;
 struct VarList {
     VarList *next;
     Var *var;
 };
 
 // 抽象構文木のノードの種類
-typedef enum {
     ND_ADD,     // +
     ND_SUB,     // -
     ND_MUL,     // *
@@ -139,7 +131,6 @@ typedef enum {
     ND_STMT_EXPR, // (...)
 } NodeKind;
 
-typedef struct Node Node;
 
 // 抽象構文木のノードの型
 struct Node {
@@ -197,19 +188,16 @@ struct Initializer {
     char *label;
 };
 
-typedef struct Function Function;
 struct Function {
     Function *next;
     char *name;
     VarList *params;
-    bool is_static;
 
     Node *node;
     VarList *locals;
     int stack_size;
 };
 
-typedef struct {
     VarList *globals;
     Function *fns;
 } Program;
@@ -220,7 +208,6 @@ Program *program();
 // typing.c
 //
 
-typedef enum {
     TY_VOID,
     TY_BOOL,
     TY_CHAR,
@@ -236,7 +223,6 @@ typedef enum {
 
 struct Type {
     TypeKind kind;
-    bool is_typedef;    // typedef
     bool is_static;     // static
     bool is_incomplete; // incomplete array
     int align;          // alignment

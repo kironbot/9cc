@@ -223,7 +223,7 @@ Program *program() {
 //
 // Note that "typedef" and "static" can appear anywhere in a type-specifier.
 Type *type_specifier() {
-    if (!is_typename(token))
+    if (!is_typename())
         error_tok(token, "typename expected");
 
     Type *ty = NULL;

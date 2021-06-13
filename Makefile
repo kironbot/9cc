@@ -13,6 +13,9 @@ test: 9cc
 		gcc -static -o tmp tmp.s tmp2.o
 		./tmp
 
+self: 9cc
+		./9cc self.h > self.s
+
 clean:
 		rm -f 9cc *.o *~ tmp*
 

@@ -261,6 +261,13 @@ Token *tokenize() {
             continue;
         }
 
+        // #include行をスキップ
+        if (startswith(p, "#include")) {
+            while (*p != '\n')
+                p++;
+            continue;
+        }
+
         // ラインコメントをスキップ
         if (startswith(p, "//")) {
             p += 2;

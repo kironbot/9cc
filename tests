@@ -21,6 +21,9 @@ char *g10[] = {"foo", "bar"};
 struct {char a; int b;} g11[2] = {{1, 2}, {3, 4}};
 struct {int a[2];} g12[2] = {{{1, 2}}, {{3, 4}}};
 
+typedef struct {int a;} hoge;
+//struct foo {bar a;};
+
 int assert(int expected, int actual, char *code) {
   if (expected == actual) {
     printf("%s => %d\n", code, actual);

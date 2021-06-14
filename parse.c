@@ -59,9 +59,10 @@ VarScope *find_var(Token *tok) {
 }
 
 TagScope *find_tag(Token *tok) {
-    for (TagScope *sc = tag_scope; sc; sc = sc->next)
+    for (TagScope *sc = tag_scope; sc; sc = sc->next) {
         if (strlen(sc->name) == tok->len && !memcmp(tok->str, sc->name, tok->len))
             return sc;
+    }
     return NULL;
 }
 
@@ -178,6 +179,13 @@ bool is_function() {
     Token *tok = token;
 
     Type *ty = type_specifier();
+
+    // int; のように終わったらグローバル変数
+    if (consume(";")) {
+        token = tok;
+        return false;
+    }
+
     char *name = NULL;
     declarator(ty, &name);
     bool isfunc = name && consume("(");
@@ -352,7 +360,6 @@ Type *abstract_declarator(Type *ty) {
 Type *type_suffix(Type *ty) {
     if (!consume("["))
         return ty;
-    
     int sz = 0;
     bool is_incomplete = true;
     if (!consume("]")) {
@@ -719,6 +726,10 @@ void global_var() {
     Type *ty = type_specifier();
     char *name = NULL;
     Token *tok = token;
+
+    if (consume(";"))
+        return;
+
     ty = declarator(ty, &name);
     ty = type_suffix(ty);
 

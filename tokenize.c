@@ -10,16 +10,26 @@ char *user_input;
 Node *code[100];
 
 // エラー出力
-void error(char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
+void error(char *fmt) {
+    fprintf(stderr, fmt, NULL);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+void error1(char *fmt, char *v1) {
+    fprintf(stderr, fmt, v1);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+void error2(char *fmt, char *v1, char *v2) {
+    fprintf(stderr, fmt, v1, v2);
     fprintf(stderr, "\n");
     exit(1);
 }
 
 // エラー箇所を報告する
-void verror_at(char *loc, char *fmt, va_list ap) {
+void verror_at(char *loc, char *fmt, char *v) {
     // Find a line containing 'loc'
     char *line = loc;
     while (user_input < line && line[-1] != '\n')
@@ -42,24 +52,33 @@ void verror_at(char *loc, char *fmt, va_list ap) {
     int pos = loc - line + indent;
     fprintf(stderr, "%*s", pos, ""); // 空白 x pos
     fprintf(stderr, "^ ");
-    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, fmt, v);
     fprintf(stderr, "\n");
     exit(1);
 }
 
-void error_at(char *loc, char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    verror_at(loc, fmt, ap);
+void error_at(char *loc, char *fmt) {
+    verror_at(loc, fmt, NULL);
 }
 
-void error_tok(Token *tok, char *fmt, ...) {
-    va_list ap;
-    va_start(ap, fmt);
-    if (tok)
-        verror_at(tok->str, fmt, ap);
+void error_at_s(char *loc, char *fmt, char *v) {
+    verror_at(loc, fmt, v);
+}
 
-    vfprintf(stderr, fmt, ap);
+void error_tok(Token *tok, char *fmt) {
+    if (tok)
+        verror_at(tok->str, fmt, NULL);
+
+    fprintf(stderr, fmt, NULL);
+    fprintf(stderr, "\n");
+    exit(1);
+}
+
+void error_tok_s(Token *tok, char *fmt, char *v) {
+    if (tok)
+        verror_at(tok->str, fmt, v);
+
+    fprintf(stderr, fmt, v);
     fprintf(stderr, "\n");
     exit(1);
 }
@@ -100,7 +119,7 @@ Token *consume_ident() {
 // 次のトークンが期待している記号であれば、トークンを1つ進める。それ以外はエラーを報告する。
 void expect(char *s) {
     if (!peek(s))
-        error_tok(token, "expected \"%s\"", s);
+        error_tok_s(token, "expected \"%s\"", s);
     token = token->next;
 }
 
@@ -263,6 +282,13 @@ Token *tokenize() {
 
         // #include行をスキップ
         if (startswith(p, "#include")) {
+            while (*p != '\n')
+                p++;
+            continue;
+        }
+
+        // #extern行をスキップ
+        if (startswith(p, "extern")) {
             while (*p != '\n')
                 p++;
             continue;

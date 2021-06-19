@@ -6,13 +6,13 @@ char *read_file(char *path) {
     FILE *fp = fopen(path, "r");
 
     if (!fp)
-        error("cannot open %s: %s", path, strerror(errno));
+        error2("cannot open %s: %s", path, strerror(errno));
 
     int filemax = 10 * 1024 * 1024;
     char *buf = malloc(filemax);
     int size = fread(buf, 1, filemax - 2, fp);
     if (!feof(fp))
-        error("%s: file too large");
+        error("file too large");
 
     // make sure that the string ends with "\n\0"
     if (size == 0 || buf[size-1] != '\n')
@@ -23,7 +23,7 @@ char *read_file(char *path) {
 
 int main(int argc, char **argv) {
     if (argc != 2) {
-        error("引数の個数が正しくありません");
+        error("argc is not 2.");
         return 1;
     }
 

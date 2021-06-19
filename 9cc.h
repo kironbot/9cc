@@ -44,9 +44,13 @@ extern char *user_input;
 extern Token *token;
 
 // 関数定義
-void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);
-void error_tok(Token *tok, char *fmt, ...);
+void error(char *fmt);
+void error1(char *fmt, char *v1);
+void error2(char *fmt, char *v1, char *v2);
+void error_at(char *loc, char *fmt);
+void error_at_s(char *loc, char *fmt, char *v);
+void error_tok(Token *tok, char *fmt);
+void error_tok_s(Token *tok, char *fmt, char *v);
 Token *peek(char *s);
 Token *consume(char *op); 
 char *strndup(char *p, int len);

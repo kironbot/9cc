@@ -127,10 +127,16 @@ Var *push_var(char *name, Type *ty, bool is_local, Token *tok) {
 }
 
 Type *find_typedef(Token *tok) {
-    if (tok->kind == TK_IDENT) {
-        VarScope *sc = find_var(token);
-        if (sc)
+    int cnt = 0;
+    for (VarScope *sc = var_scope; sc; sc = sc->next) {
+        if (sc->var) {
+            continue;
+        }
+
+        if (strlen(sc->name) == tok->len && strncmp(sc->name, tok->str, tok->len) == 0) {
             return sc->type_def;
+        }
+        cnt++;
     }
     return NULL;
 }
@@ -735,6 +741,8 @@ void global_var() {
 
     Var *var = push_var(name, ty, false, tok);
     push_scope(name)->var = var;
+    if (ty->is_typedef)
+        push_scope(name)->type_def = ty;
 
     if (consume("=")) {
         Initializer head;

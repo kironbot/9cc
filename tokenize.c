@@ -158,7 +158,7 @@ char *starts_with_reserved(char *p) {
     // キーワード
     static char *kw[] = {"return", "if", "else", "while", "for", "int", 
                          "char", "sizeof", "struct", "typedef", "short",
-                         "long", "void", "_Bool", "enum", "static",
+                         "long", "void", "bool", "_Bool", "enum", "static",
                          "break", "continue", "goto", "switch", "case", "default"};
 
     for (int i = 0; i < sizeof(kw) / sizeof(*kw); i++) {

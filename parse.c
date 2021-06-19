@@ -268,6 +268,8 @@ Type *type_specifier() {
             base_type += VOID;
         } else if (consume("_Bool")) {
             base_type += BOOL;
+        } else if (consume("bool")) {
+            base_type += BOOL;
         } else if (consume("char")) {
             base_type += CHAR;
         } else if (consume("short")) {
@@ -949,7 +951,7 @@ bool is_typename() {
     return peek("void") || peek("char") || peek("short")  ||
            peek("int")  || peek("long") || peek("struct") ||
            peek("_Bool")|| peek("enum") || peek("typedef")||  
-           peek("static") || find_typedef(token);
+           peek("static") || peek("bool") || find_typedef(token);
 }
 
 // stmt = "return" expr ";"

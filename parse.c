@@ -687,10 +687,12 @@ Initializer *gvar_initializer(Initializer *cur, Type *ty) {
         if (ty->kind == TY_ARRAY) {
             int i = 0;
 
-            do {
+            cur = gvar_initializer(cur, ty->base);
+            i++;
+            while (!peek_end() && consume(",")){
                 cur = gvar_initializer(cur, ty->base);
                 i++;
-            } while (!peek_end() && consume(","));
+            }
 
             expect_end();
 
@@ -709,11 +711,15 @@ Initializer *gvar_initializer(Initializer *cur, Type *ty) {
         if (ty->kind == TY_STRUCT) {
             Member *mem = ty->members;
 
-            do {
+
+            cur = gvar_initializer(cur, mem->ty);
+            cur = emit_struct_padding(cur, ty, mem);
+            mem = mem->next;
+            while (!peek_end() && consume(",")) {
                 cur = gvar_initializer(cur, mem->ty);
                 cur = emit_struct_padding(cur, ty, mem);
                 mem = mem->next;
-            } while (!peek_end() && consume(","));
+            }
 
             expect_end();
 
@@ -870,10 +876,12 @@ Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg) {
     if (ty->kind == TY_ARRAY) {
         int i = 0;
 
-        do {
+        Designator desg2 = {desg, i++, NULL};
+        cur = lvar_initializer(cur, var, ty->base, &desg2);
+        while (!peek_end() && consume(",")) {
             Designator desg2 = {desg, i++, NULL};
             cur = lvar_initializer(cur, var, ty->base, &desg2);
-        } while (!peek_end() && consume(","));
+        }
 
         expect_end();
 
@@ -893,11 +901,14 @@ Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg) {
     if (ty->kind == TY_STRUCT) {
         Member *mem = ty->members;
 
-        do {
+        Designator desg2 = {desg, 0, mem};
+        cur = lvar_initializer(cur, var, mem->ty, &desg2);
+        mem = mem->next;
+        while (!peek_end() && consume(",")) {
             Designator desg2 = {desg, 0, mem};
             cur = lvar_initializer(cur, var, mem->ty, &desg2);
             mem = mem->next;
-        } while (!peek_end() && consume(","));
+        }
 
         expect_end();
 

@@ -422,8 +422,11 @@ Type *struct_decl() {
     if (!consume("{"))
         return struct_type();
     
-    TagScope *sc = find_tag(tag);
-    Type *ty;
+
+    Type *ty = NULL;
+    TagScope *sc = NULL;
+    if (tag)
+        sc = find_tag(tag);
 
     if (sc && sc->depth == scope_depth) {
         // If there's an existing struct type having the same tag name

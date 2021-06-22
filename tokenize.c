@@ -47,7 +47,7 @@ void verror_at(char *loc, char *fmt, char *v) {
     
     // Print out the line
     int indent = fprintf(stderr, "%s:%d: ", filename, line_num);
-    fprintf(stderr, "%.*s\n", (int)(end - line), line);
+    fprintf(stderr, "%.*s\n", (end - line), line);
 
     int pos = loc - line + indent;
     fprintf(stderr, "%*s", pos, ""); // 空白 x pos

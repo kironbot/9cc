@@ -200,8 +200,19 @@ bool is_function() {
     return isfunc;
 }
 
+void def_constant(char *name, int val) {
+    VarScope *sc = push_scope(name);
+    sc->enum_ty = int_type();
+    sc->enum_val = val;
+}
+
 // program = (global-var | function)*
 Program *program() {
+    def_constant("stderr", 0);
+    def_constant("NULL", 0);
+    def_constant("true", 1);
+    def_constant("false", 0);
+
     Function head;
     head.next = NULL;
     Function *cur = &head;
@@ -974,6 +985,11 @@ bool is_typename() {
 Node *stmt() {
     Token *tok;
     if (tok = consume("return")) {
+        // support `return;` as `return 0;`
+        if(consume(";")) {
+            Node *node = new_unary(ND_RETURN, new_num(0, tok), tok);
+            return node;
+        }
         Node *node = new_unary(ND_RETURN, expr(), tok);
         expect(";");
         return node;

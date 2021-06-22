@@ -145,13 +145,13 @@ void visit(Node *node) {
             node->lhs = node->rhs;
             node->rhs = tmp;
         }
-        if (node->rhs->ty->base)
-            error_tok(node->tok, "invalid pointer arithmetic operands");
+        //if (node->rhs->ty->base)
+        //    error_tok(node->tok, "invalid pointer arithmetic operands");
         node->ty = node->lhs->ty;
         return;
     case ND_SUB:
-        if (node->rhs->ty->base)
-            error_tok(node->tok, "invalid pointer arithmetic operands");
+        //if (node->rhs->ty->base)
+        //    error_tok(node->tok, "invalid pointer arithmetic operands");
         node->ty = node->lhs->ty;
         return;
     case ND_ASSIGN:

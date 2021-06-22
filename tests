@@ -84,7 +84,7 @@ int count() {
 
 int param_decay(int x[]) {return x[0];}
 
-void voidfn(void) {}
+void voidfn(void) {return;}
 
 static int static_fn(void) {}
 

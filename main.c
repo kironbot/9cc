@@ -22,15 +22,25 @@ char *read_file(char *path) {
 }
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        error("argc is not 2.");
-        return 1;
-    }
-
     // Tokenize and parse
-    filename = argv[1];
-    user_input = read_file(argv[1]);
-    token = tokenize();
+    // 複数ファイルのコンパイルに対応
+    for (int i = 1; i < argc; i++) {
+        filename = argv[i];
+        user_input = read_file(filename);
+        Token *t = tokenize();
+        if (!token) {
+            token = t;
+        } else {
+            Token *tt = token;
+            for (;;) {
+                if (tt->next->kind == TK_EOF) {
+                    tt->next = t;
+                    break;
+                }
+                tt = tt->next;
+            }
+        }
+    }
     Program *prog = program();
     add_type(prog);
 

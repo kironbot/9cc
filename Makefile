@@ -14,7 +14,7 @@ test: 9cc
 		./tmp
 
 self: 9cc
-		./9cc self.h
+		./9cc 9cc.h tokenize.c
 
 clean:
 		rm -f 9cc *.o *~ tmp*

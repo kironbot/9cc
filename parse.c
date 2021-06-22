@@ -209,6 +209,7 @@ void def_constant(char *name, int val) {
 // program = (global-var | function)*
 Program *program() {
     def_constant("stderr", 0);
+    def_constant("errno", 0);
     def_constant("NULL", 0);
     def_constant("true", 1);
     def_constant("false", 0);
@@ -286,6 +287,8 @@ Type *type_specifier() {
         } else if (consume("short")) {
             base_type += SHORT;
         } else if (consume("int")) {
+            base_type += INT;
+        } else if (consume("FILE")) {
             base_type += INT;
         } else if (consume("long")) {
             base_type += LONG;
@@ -976,7 +979,8 @@ bool is_typename() {
     return peek("void") || peek("char") || peek("short")  ||
            peek("int")  || peek("long") || peek("struct") ||
            peek("_Bool")|| peek("enum") || peek("typedef")||  
-           peek("static") || peek("bool") || find_typedef(token);
+           peek("static") || peek("bool") || peek("FILE") ||
+           find_typedef(token);
 }
 
 // stmt = "return" expr ";"

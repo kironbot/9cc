@@ -9,12 +9,14 @@ $(OBJS): 9cc.h
 
 test: 9cc
 		./9cc tests > tmp.s
-		echo 'int char_fn() {return 257; }' | gcc -xc -c -o tmp2.o -
-		gcc -static -o tmp tmp.s tmp2.o
+		gcc -static -o tmp tmp.s
 		./tmp
 
 self: 9cc
-		./9cc 9cc.h tokenize.c type.c codegen.c parse.c main.c
+		./9cc 9cc.h tokenize.c type.c parse.c codegen.c main.c | grep -v "^;" > tmp.s
+		gcc -g -static -o 9cc_self tmp.s
+		./9cc_self 9cc.h tokenize.c type.c parse.c codegen.c main.c | grep -v "^;" > tmp2.s
+		diff -ur tmp.s tmp2.s
 
 clean:
 		rm -f 9cc *.o *~ tmp*

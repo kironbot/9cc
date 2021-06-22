@@ -65,8 +65,6 @@ Type *array_of(Type *base, int size) {
 }
 
 int size_of(Type *ty, Token *tok) {
-    assert(ty->kind != TY_VOID);
-
     if (ty->is_incomplete)
         error_tok(tok, "incomplete type");
 

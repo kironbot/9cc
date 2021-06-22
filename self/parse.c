@@ -746,7 +746,7 @@ Initializer *gvar_initializer(Initializer *cur, Type *ty) {
     if (n->kind == ND_VAR && n->var->ty->kind == TY_ARRAY)
         return new_init_label(cur, n->var->name);
     
-    return new_init_val(cur, size_of(ty, token), eval(n));
+    return new_init_val(cur, size_of(ty, token), eval(expr));
 }
 
 // global-var = type-specifier declarator type-suffix ("=" gvar-initializer)? ";"
@@ -820,6 +820,7 @@ Node *lvar_init_zero(Node *cur, Var *var, Type *ty, Designator *desg) {
     cur->next = new_desg_node(var, desg, new_num(0, token));
     return cur->next;
 }
+
 
 
 // lvar-initializer = assign
@@ -923,6 +924,7 @@ Node *lvar_initializer(Node *cur, Var *var, Type *ty, Designator *desg) {
 }
 
 
+
 // declaration = type-specifier declarator type-suffix ("=" lvar-initializer)? ";"
 //             | type-specifier ";"
 Node *declaration() {
@@ -966,6 +968,8 @@ Node *declaration() {
     node->body = head.next;
     return node;
 }
+
+
 
 Node *read_expr_stmt() {
     Token *tok = token;
